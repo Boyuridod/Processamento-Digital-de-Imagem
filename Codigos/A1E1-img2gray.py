@@ -51,7 +51,7 @@ def img2gray(caminhoDaImagem):
 
             cont += 1
 
-            if(cont * 10000 % total == 0):
+            if((cont * 10000) % total == 0):
                 print(f"\r{cont * 100 // total}% Concluído", end="")
 
     novaImagem = "Output\\" + getNomeImagem(caminhoDaImagem)
