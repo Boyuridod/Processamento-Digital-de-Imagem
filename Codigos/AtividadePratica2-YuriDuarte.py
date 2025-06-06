@@ -42,7 +42,7 @@ plt.ylabel("Frequência")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-# plt.show()
+plt.show()
 
 # Apresente o Hostograma da imagem em RGB, porém agora apresente separado cada conjunto de cores, desta forma, será apresentado o
 # histograma apenas do R (RED);
@@ -55,7 +55,7 @@ plt.ylabel("Frequência")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-# plt.show()
+plt.show()
 
 # Depois do G (GREEN):
 
@@ -67,7 +67,7 @@ plt.ylabel("Frequência")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-# plt.show()
+plt.show()
 
 # E finalmente do B (BLUE).
 
@@ -79,7 +79,7 @@ plt.ylabel("Frequência")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-# plt.show()
+plt.show()
 
 # Apresente o Histograma em tons de Cinza (8 bits).
 
@@ -174,3 +174,26 @@ plt.tight_layout()
 plt.show()
 
 # Faça outra limirização da imagem RGB original com valor a sua escolha e diferente do exercício anterior, apresente a imagem original e ao lado a imagem limiarizada.
+
+T = 50 # Valor de limiarização escolhido
+
+imagem_limiarizada2 = limiarizador(imagem, T)
+
+plt.figure(figsize=(15, 5))
+plt.subplot(1, 3, 1)
+plt.imshow(imagem)
+plt.title("Imagem Original")
+plt.axis("off")
+
+plt.subplot(1, 3, 2)
+plt.imshow(imagem_limiarizada, cmap='gray')
+plt.title(f"Limiarizada (T={150})")
+plt.axis("off")
+
+plt.subplot(1, 3, 3)
+plt.imshow(imagem_limiarizada2, cmap='gray')
+plt.title(f"Limiarizada (T={T})")
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
