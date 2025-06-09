@@ -7,16 +7,16 @@ Este repositório contém exercícios e atividades desenvolvidas durante a disci
 Alguns dos principais temas trabalhados ao longo da disciplina:
 
 - Transformação em escalas de cinza
-
-## 📁 Estrutura do Repositório
-
-```bash
-.
-├── Images/               # Conjunto de imagens utilizadas nos exercícios
-├── Codigos/              # Códigos-fonte organizados por aula ou tema
-├── Output/               # Resultados gerados pelos algoritmos
-└── README.md             # Este arquivo
-```
+- Equalização de histograma
+- Operações aritméticas e lógicas em imagens
+- Filtros espaciais (média, mediana, gaussiano)
+- Detecção de bordas (Sobel, Prewitt, Canny)
+- Segmentação de imagens
+- Morfologia matemática (dilatação, erosão)
+- Transformada de Fourier em imagens
+- Realce e restauração de imagens
+- Análise de componentes conectados
+- Extração de características e reconhecimento de padrões
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -29,9 +29,10 @@ Alguns dos principais temas trabalhados ao longo da disciplina:
 
 * **Nome:** Processamento Digital de Imagens
 * **Curso:** Engenharia de Computação
-* **Instituição:** IFTM – Instituto Federal do Triângulo Mineiro – Campus Uberaba
-* **Período:** \[coloque o semestre aqui, ex: 2024/2]
-* **Professor(a):** \[nome do(a) professor(a), se desejar]
+* **Instituição:** IFTM – Instituto Federal do Triângulo Mineiro – Campus Uberaba Parque Tecnológico
+* **Período:** 9° Período (2025/1)
+* **Estudante:** Yuri David Silva Duarte
+* **Professor(a):** Marcelo Barreiro
 
 ## 📌 Observações
 

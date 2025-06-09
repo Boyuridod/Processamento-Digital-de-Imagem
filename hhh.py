@@ -1,8 +1,3 @@
-# Atividade Prática de Convolução de Imagem
-# Estudante: Yuri David Silva Duarte
-# Data: 05/06/2025
-
-# Pegar a Imagem original
 from PIL import Image
 
 def trataCaminho(caminhoDaImagem):
@@ -18,12 +13,50 @@ def trataCaminho(caminhoDaImagem):
 
     return caminho
 
-# path = trataCaminho(input("Caminho da imagem: "))
-path = trataCaminho("D:\DesenvolvimentoProjetos\Processamento-Digital-de-Imagem\Images\The Forest Arco e Flecha.jpeg")
-imagem = Image.open(path)
+def getNomeImagem(caminhoDaImagem):
+    nome = ""
 
-# implementação do filtro Negativo em RGB: os valores das bandas R, G e B são invertidos conforme a operação aritmética: 255 menos o valor do pixel da matriz;
+    for i in caminhoDaImagem:
+        if(ord(i) == 92): # if(i == "\")
+           nome = ""
+        else:
+            nome += i
+
+    return nome
+
+def img2gray(caminhoDaImagem):
+
+    imagem = Image.open(caminhoDaImagem)
+
+    largura, altura = imagem.size # width, height
+
+    imgGray = Image.new("RGB", (largura, altura))
+
+    total = largura * altura
+
+    cont = 0
+
+    for x in range(largura):
+        for y in range(altura):
+            pixel = imagem.getpixel((x, y))
+            luminancia = sum(pixel) // 3
+
+            imgGray.putpixel((x, y), (luminancia, luminancia, luminancia))
+
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\r{cont * 100 // total}% Concluído", end="")
+
+    novaImagem = "Output\\" + getNomeImagem(caminhoDaImagem)
+
+    print(f"\nImagem salva em: {novaImagem}")
+
+    imgGray.save(novaImagem)
+
+# TODO Salvar a imagem
 def filtroNegativo(imagem):
+    # imagem = Image.open(imagem)
     largura, altura = imagem.size  # width, height
     imgNegativo = Image.new("RGB", (largura, altura))
     total = largura * altura
@@ -37,22 +70,13 @@ def filtroNegativo(imagem):
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\rFiltro negativo {cont * 100 // total}% concluído", end="")
-
-    print("")
+                print(f"\r{cont * 100 // total}% Concluído", end="")
 
     return imgNegativo
 
-# imagemNegativo = filtroNegativo(imagem)
-
-# imagemNegativo.show()
-
-# implementação do controle de Brilho Aditivo: é somado uma medida definida pelo usuário a todos os pixels das bandas R, G e B;
-# medida = int(input())
-medida = 17
-
-def aumentaBrilho(img, quantidade):
-    largura, altura = img.size  # width, height
+# TODO Vide anterior
+def aumentaBrilho(imagem, quantidade):
+    largura, altura = imagem.size  # width, height
     imgBrilho = Image.new("RGB", (largura, altura))
     total = largura * altura
     cont = 0
@@ -78,19 +102,9 @@ def aumentaBrilho(img, quantidade):
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\rSoma brilho {cont * 100 // total}% concluído", end="")
+                print(f"\r{cont * 100 // total}% Concluído", end="")
 
-    print("")
-    
     return imgBrilho
-
-# imgComMedida = aumentaBrilho(imagem, medida)
-
-# imgComMedida.show()
-
-# implementação do controle de Brilho Multiplicativo: é multiplicado uma medida definida pelo usuário a todos os pixels das bandas R, G e B;
-
-medida = 2
 
 def multiplicaBrilho(img, quantidade):
     largura, altura = img.size  # width, height
@@ -125,12 +139,6 @@ def multiplicaBrilho(img, quantidade):
 
     return imgBrilho
 
-# multBrilho = multiplicaBrilho(imagem, medida)
-
-# multBrilho.show()
-
-# Filtro da média com máscara 3x3
-
 def mascara3img(imagem):
     largura, altura = imagem.size  # width, height
     mascaraAplicada = Image.new("RGB", (largura, altura))
@@ -163,12 +171,6 @@ def mascara3img(imagem):
     print("")
     
     return mascaraAplicada
-
-# mascara3 = mascara3img(imagem)
-
-# mascara3.show()
-
-# Filtro da média com máscara 9x9
 
 def mascara9img(imagem):
     largura, altura = imagem.size  # width, height
@@ -208,14 +210,8 @@ def mascara9img(imagem):
     
     return mascaraAplicada
 
-# mascara9 = mascara9img(imagem)
-
-# mascara9.show()
-
-# Outro Filtro Passa Baixa
-# Escolhi o 15x15
-
-def mascara15img(imagem):
+#TODO Transformar em dinâmico
+def mascara5img(imagem):
     largura, altura = imagem.size  # width, height
     mascaraAplicada = Image.new("RGB", (largura, altura))
     total = largura * altura
@@ -226,8 +222,8 @@ def mascara15img(imagem):
             G = 0
             B = 0
 
-            for j in range(y - 7, y + 7, 1):
-                for i in range(x - 7, x + 7, 1):
+            for j in range(y - 2, y + 2, 1):
+                for i in range(x - 2, x + 2, 1):
                     try:
                         r, g, b = imagem.getpixel((i, j))
                         R += r
@@ -238,31 +234,17 @@ def mascara15img(imagem):
                         G += (255 // 2)
                         B += (255 // 2)
 
-            R = R // (15 * 15)
-            G = G // (15 * 15)
-            B = B // (15 * 15)
+            R = R // 25 #(5 * 5)
+            G = G // 25 #(5 * 5)
+            B = B // 25 #(5 * 5)
 
             mascaraAplicada.putpixel((x, y), (R, G, B))
 
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\rMascara 15x15 {cont * 100 // total}% concluído", end="")
+                print(f"\rMascara 9x9 {cont * 100 // total}% concluído", end="")
 
     print("")
     
     return mascaraAplicada
-
-# mascara15 = mascara15img(imagem)
-
-# mascara15.show()
-
-# Fazer, usando convolução, o Filtro Passa-Alta (Prewitt)
-
-
-
-# Fazer, usando convolução, o Filtro Passa-Alta (Sobel)
-
-# Fazer, usando convolução, o Filtro Passa-Alta (Laplace)
-
-# Propor um outro filtro Passa-Alta
