@@ -43,13 +43,7 @@ def filtroNegativo(imagem):
 
     return imgNegativo
 
-# imagemNegativo = filtroNegativo(imagem)
-
-# imagemNegativo.show()
-
 # implementação do controle de Brilho Aditivo: é somado uma medida definida pelo usuário a todos os pixels das bandas R, G e B;
-# medida = int(input())
-medida = 17
 
 def aumentaBrilho(img, quantidade):
     largura, altura = img.size  # width, height
@@ -84,13 +78,7 @@ def aumentaBrilho(img, quantidade):
     
     return imgBrilho
 
-# imgComMedida = aumentaBrilho(imagem, medida)
-
-# imgComMedida.show()
-
 # implementação do controle de Brilho Multiplicativo: é multiplicado uma medida definida pelo usuário a todos os pixels das bandas R, G e B;
-
-medida = 2
 
 def multiplicaBrilho(img, quantidade):
     largura, altura = img.size  # width, height
@@ -125,10 +113,6 @@ def multiplicaBrilho(img, quantidade):
 
     return imgBrilho
 
-# multBrilho = multiplicaBrilho(imagem, medida)
-
-# multBrilho.show()
-
 # Filtro da média com máscara 3x3
 
 def mascara3img(imagem):
@@ -142,12 +126,17 @@ def mascara3img(imagem):
             G = 0
             B = 0
 
-            for j in range(y - 1, y + 1, 1):
-                for i in range(x - 1, x + 1, 1):
-                    r, g, b = imagem.getpixel((i, j))
-                    R += r
-                    G += g
-                    B += b
+            for j in range(y - 1, y + 2, 1):
+                for i in range(x - 1, x + 2, 1):
+                    try:
+                        r, g, b = imagem.getpixel((i, j))
+                        R += r
+                        G += g
+                        B += b
+                    except:
+                        R += 255 // 2 
+                        G += 255 // 2 
+                        B += 255 // 2 
 
             R = R // 9
             G = G // 9
@@ -164,10 +153,6 @@ def mascara3img(imagem):
     
     return mascaraAplicada
 
-# mascara3 = mascara3img(imagem)
-
-# mascara3.show()
-
 # Filtro da média com máscara 9x9
 
 def mascara9img(imagem):
@@ -181,8 +166,8 @@ def mascara9img(imagem):
             G = 0
             B = 0
 
-            for j in range(y - 4, y + 4, 1):
-                for i in range(x - 4, x + 4, 1):
+            for j in range(y - 4, y + 5, 1):
+                for i in range(x - 4, x + 5, 1):
                     try:
                         r, g, b = imagem.getpixel((i, j))
                         R += r
@@ -208,10 +193,6 @@ def mascara9img(imagem):
     
     return mascaraAplicada
 
-# mascara9 = mascara9img(imagem)
-
-# mascara9.show()
-
 # Outro Filtro Passa Baixa
 # Escolhi o 15x15
 
@@ -226,8 +207,8 @@ def mascara15img(imagem):
             G = 0
             B = 0
 
-            for j in range(y - 7, y + 7, 1):
-                for i in range(x - 7, x + 7, 1):
+            for j in range(y - 7, y + 8, 1):
+                for i in range(x - 7, x + 8, 1):
                     try:
                         r, g, b = imagem.getpixel((i, j))
                         R += r
@@ -253,16 +234,243 @@ def mascara15img(imagem):
     
     return mascaraAplicada
 
-# mascara15 = mascara15img(imagem)
-
-# mascara15.show()
-
 # Fazer, usando convolução, o Filtro Passa-Alta (Prewitt)
 
+from math import sqrt
 
+def imgParaCinza(imagem):
+    largura, altura = imagem.size  # width, height
+    total = largura * altura
+    cont = 0
+    cinza = Image.new("L", (largura, altura))
+
+    for x in range(largura):
+        for y in range(altura):
+            R, G, B = imagem.getpixel((x, y))
+
+            pixel = int((0.299 * R) + (0.587 * G) + (0.114 * B))
+
+            cinza.putpixel((x, y), pixel)
+            
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\rTransformando em cinza {cont * 100 // total}% concluído", end="")
+
+    print("")
+
+    return cinza
+
+def filtroPrewitt(imagem):
+    imagem = imgParaCinza(imagem)
+    largura, altura = imagem.size  # width, height
+    prewitt = Image.new("L", (largura, altura))
+    total = largura * altura
+    cont = 0
+
+    mascHorizontal = [
+        [-1,  0,  1],
+        [-1,  0,  1],
+        [-1,  0,  1]
+    ]
+    mascVertical = [
+        [-1, -1, -1],
+        [ 0,  0,  0],
+        [ 1,  1,  1]
+    ]
+
+    for x in range(largura):
+        for y in range(altura):
+            Ph = 0
+            Pv = 0
+            for i in range(x - 1, x + 2, 1):
+                for j in range(y - 1, y + 2, 1):
+                    try:
+                        Ph += (imagem.getpixel((i, j)) * mascHorizontal[x - i][y - j])
+                        Pv += (imagem.getpixel((i, j)) * mascVertical[x - i][y - j])
+
+                        res = int(sqrt((Ph * Ph) + (Pv * Pv)))
+            
+                    except:
+                        Ph += 255//2
+                        Pv += 255//2
+
+                        res = int(sqrt((Ph * Ph) + (Pv * Pv)))
+
+            prewitt.putpixel((x, y), res)
+
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\rFiltro de Prewitt {cont * 100 // total}% concluído", end="")
+
+    print("")
+
+    return prewitt
 
 # Fazer, usando convolução, o Filtro Passa-Alta (Sobel)
 
+def filtroSobel(imagem):
+    imagem = imgParaCinza(imagem)
+    largura, altura = imagem.size  # width, height
+    sobel = Image.new("L", (largura, altura))
+    total = largura * altura
+    cont = 0
+
+    mascHorizontal = [
+        [-1,  0,  1],
+        [-2,  0,  2],
+        [-1,  0,  1]
+    ]
+    mascVertical = [
+        [-1, -2, -1],
+        [ 0,  0,  0],
+        [ 1,  2,  1]
+    ]
+
+    for x in range(largura):
+        for y in range(altura):
+            Ph = 0
+            Pv = 0
+            for i in range(x - 1, x + 2, 1):
+                for j in range(y - 1, y + 2, 1):
+                    try:
+                        Ph += (imagem.getpixel((i, j)) * mascHorizontal[x - i][y - j])
+                        Pv += (imagem.getpixel((i, j)) * mascVertical[x - i][y - j])
+
+                        res = int(sqrt((Ph * Ph) + (Pv * Pv)))
+            
+                    except:
+                        Ph += 255//2
+                        Pv += 255//2
+
+                        res = int(sqrt((Ph * Ph) + (Pv * Pv)))
+
+            sobel.putpixel((x, y), res)
+
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\rFiltro de Sobel {cont * 100 // total}% concluído", end="")
+
+    print("")
+
+    return sobel
+
 # Fazer, usando convolução, o Filtro Passa-Alta (Laplace)
 
+def filtroLaplaciano(imagem):
+    largura, altura = imagem.size  # width, height
+    total = largura * altura
+    cont = 0
+    imagem = imgParaCinza(imagem)
+    laplace = Image.new("L", (largura, altura))
+
+    for x in range(largura):
+        for y in range(altura):
+            pixel = 0
+
+            for j in range(y - 1, y + 2, 1):
+                for i in range(x - 1, x + 2, 1):
+                    try:
+                        if(i == x and j == y):
+                            pixel += (imagem.getpixel((i, j)) * -8)
+                        else:
+                            pixel += imagem.getpixel((i, j))
+                    except:
+                        pixel += 255 // 2
+
+            laplace.putpixel((x, y), pixel)
+
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\rFiltro de Laplace {cont * 100 // total}% concluído", end="")
+
+    print("")
+    
+    return laplace
+
 # Propor um outro filtro Passa-Alta
+# Proponho um que a matriz é
+# [1, 1, 1]
+# [1, -14, 1]
+# [1, 1, 1]
+
+def filtroYuri(imagem):
+    largura, altura = imagem.size  # width, height
+    total = largura * altura
+    cont = 0
+    imagem = imgParaCinza(imagem)
+    yuri = Image.new("L", (largura, altura))
+
+    for x in range(largura):
+        for y in range(altura):
+            pixel = 0
+
+            for j in range(y - 1, y + 2, 1):
+                for i in range(x - 1, x + 2, 1):
+                    try:
+                        if(i == x and j == y):
+                            pixel += (imagem.getpixel((i, j)) * -14)
+                        else:
+                            pixel += imagem.getpixel((i, j))
+                    except:
+                        pixel += 255 // 2
+
+            yuri.putpixel((x, y), pixel)
+
+            cont += 1
+
+            if((cont * 10000) % total == 0):
+                print(f"\rFiltro do Yuri {cont * 100 // total}% concluído", end="")
+
+    print("")
+    
+    return yuri
+
+imagemNegativo = filtroNegativo(imagem)
+
+imagemNegativo.show()
+
+# medida = int(input())
+medida = 17
+
+imgComMedida = aumentaBrilho(imagem, medida)
+
+imgComMedida.show()
+
+# medida = int(input())
+medida = 2
+
+multBrilho = multiplicaBrilho(imagem, medida)
+
+multBrilho.show()
+
+mascara3 = mascara3img(imagem)
+
+mascara3.show()
+
+mascara9 = mascara9img(imagem)
+
+mascara9.show()
+
+mascara15 = mascara15img(imagem)
+
+mascara15.show()
+
+imagemPrewitt = filtroPrewitt(imagem)
+
+imagemPrewitt.show()
+
+imagemSobel = filtroSobel(imagem)
+
+imagemSobel.show()
+
+imagemLaplace = filtroLaplaciano(imagem)
+
+imagemLaplace.show()
+
+imagemYuri = filtroYuri(imagem)
+
+imagemYuri.show()
