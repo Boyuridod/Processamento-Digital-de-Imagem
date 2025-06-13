@@ -25,13 +25,10 @@ def getNomeImagem(caminhoDaImagem):
 
     return nome
 
-def img2gray(caminhoDaImagem):
-
-    imagem = Image.open(caminhoDaImagem)
-
+def img2gray(imagem):
     largura, altura = imagem.size # width, height
 
-    imgGray = Image.new("RGB", (largura, altura))
+    imgGray = Image.new("L", (largura, altura))
 
     total = largura * altura
 
@@ -42,18 +39,14 @@ def img2gray(caminhoDaImagem):
             pixel = imagem.getpixel((x, y))
             luminancia = sum(pixel) // 3
 
-            imgGray.putpixel((x, y), (luminancia, luminancia, luminancia))
+            imgGray.putpixel((x, y), (luminancia))
 
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\r{cont * 100 // total}% Concluído", end="")
+                print(f"\rTransformar em cinza {cont * 100 // total}% Concluído", end="")
 
-    novaImagem = "Output\\" + getNomeImagem(caminhoDaImagem)
-
-    print(f"\nImagem salva em: {novaImagem}")
-
-    imgGray.save(novaImagem)
+    return imgGray
 
 def imgParaCinza(imagem):
     largura, altura = imagem.size  # width, height
