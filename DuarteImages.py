@@ -65,7 +65,7 @@ def imgParaCinza(imagem):
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\rTransformando em cinza {cont * 100 // total}% concluído", end="")
+                print(f"\rConvertendo imagem em tons de cinza {cont * 100 // total}% concluído", end="")
 
     print("")
 
@@ -428,5 +428,7 @@ def filtroYuri(imagem):
     print("")
     
     return yuri
+
+
 
 #FIM

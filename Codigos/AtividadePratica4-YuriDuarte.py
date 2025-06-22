@@ -1,4 +1,3 @@
-# Atividade Prática de Convolução de Imagem
 # Estudante: Yuri David Silva Duarte
 
 from PIL import Image
@@ -24,7 +23,7 @@ def imgParaCinza(imagem):
             cont += 1
 
             if((cont * 10000) % total == 0):
-                print(f"\rConvertendo em cinza {cont * 100 // total}% concluído", end="")
+                print(f"\rConvertendo imagem em tons de cinza {cont * 100 // total}% concluído", end="")
 
     print("")
 
@@ -129,16 +128,16 @@ def filtros_frequencia(imagemCinza):
 
 ## - Aplique a transformação inversa e Mostre as imagens resultantes
 # TODO FIX Ta td preto
-def transformadaInversa(filtrados):
+def inversaFourier(filtrados):
     nomes = ["Passa-Baixa (Após Inversa)", "Passa-Alta (Após Inversa)",
              "Passa-Banda (Após Inversa)", "Rejeita-Banda (Após Inversa)"]
 
     plt.figure(figsize=(12, 8))
 
     for i, filtrado in enumerate(filtrados):
-        f_ishift = np.fft.ifftshift(filtrado)              # Desfaz o shift
-        img_back = np.fft.ifft2(f_ishift)                  # Faz a inversa
-        img_resultado = np.abs(img_back)                   # Parte real
+        f_ishift = np.fft.ifftshift(filtrado)        # Desfaz o shift no espectro
+        img_back = np.fft.ifft2(f_ishift)            # Faz a transformada inversa
+        img_resultado = np.abs(img_back)             # Mantém apenas a parte real/magnitude
 
         plt.subplot(2, 2, i+1)
         plt.imshow(img_resultado, cmap='gray')
@@ -181,10 +180,87 @@ def aplicarWavelet(imagemCinza):
     plt.show()
 
 ## - Aplique um filtro passa-alta e um passa-baixa
+def filtrosPAPBWavelet(imagemCinza):
+    imagem_array = np.array(imagemCinza)
+
+    # Aplica a Transformada Discreta de Wavelet (DWT) de 1 nível
+    coeffs = pywt.dwt2(imagem_array, 'haar')
+    cA, (cH, cV, cD) = coeffs
+
+    # Filtro Passa-Baixa: reconstruindo só com cA (Aproximação)
+    zeros_detalhes = (np.zeros_like(cH), np.zeros_like(cV), np.zeros_like(cD))
+    passa_baixa = pywt.idwt2((cA, zeros_detalhes), 'haar')
+
+    # Filtro Passa-Alta: reconstruindo só com os detalhes (cH, cV, cD)
+    zeros_aproximacao = np.zeros_like(cA)
+    passa_alta = pywt.idwt2((zeros_aproximacao, (cH, cV, cD)), 'haar')
+
+    # Exibe os resultados
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(imagem_array, cmap='gray')
+    plt.title("Imagem Original")
+    plt.axis('off')
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(passa_baixa, cmap='gray')
+    plt.title("Passa-Baixa (Wavelet)")
+    plt.axis('off')
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(np.abs(passa_alta), cmap='gray')
+    plt.title("Passa-Alta (Wavelet)")
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
 ## - Aplique a transformação inversa e Mostre as imagens resultantes
-## - Comente sua percepção do resultado e o que cada um dos filtros causou na imagem
+def inversaWavelet(imagemCinza):
+    imagem_array = np.array(imagemCinza)
 
+    # Faz a DWT nível 1
+    coeffs = pywt.dwt2(imagem_array, 'haar')
+    cA, (cH, cV, cD) = coeffs
 
+    # Reconstrói a imagem completa (usando todos os coeficientes)
+    imagem_reconstruida = pywt.idwt2((cA, (cH, cV, cD)), 'haar')
+
+    # Reconstrói imagens parciais (só com algumas partes)
+    # Só aproximação
+    img_aproximacao = pywt.idwt2((cA, (np.zeros_like(cH), np.zeros_like(cV), np.zeros_like(cD))), 'haar')
+
+    # Só detalhes (bordas)
+    img_detalhes = pywt.idwt2((np.zeros_like(cA), (cH, cV, cD)), 'haar')
+
+    # Exibe os resultados
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(imagem_array, cmap='gray')
+    plt.title("Imagem Original")
+    plt.axis('off')
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(img_aproximacao, cmap='gray')
+    plt.title("Somente Aproximação (cA)")
+    plt.axis('off')
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(np.abs(img_detalhes), cmap='gray')
+    plt.title("Somente Detalhes (cH+cV+cD)")
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+    # Mostra a imagem reconstruída completa
+    plt.figure()
+    plt.imshow(np.abs(imagem_reconstruida), cmap='gray')
+    plt.title("Imagem Reconstruída Completa (Após Inversa)")
+    plt.axis('off')
+    plt.show()
 
 opcao = 1000
 
@@ -196,9 +272,9 @@ imagem = Image.open(caminho)
 imagemCinza = imgParaCinza(imagem)
 # imagemCinza.show() # Mostra a imagem em cinza
 
-while(opcao != 0):
+while(opcao != "0"):
     print('''
-Selecione uma opção:
+    **Selecione uma opção**
 Baseado na Transformada de Fourier:
     1) Apresente-a em seu espectro da frequência
     2) Aplique um filtro passa-alta, passa-baixa, passa-banda e rejeita-banda
@@ -211,51 +287,70 @@ Baseado na Transformada Wavelet:
     8) Comente sua percepção do resultado e o que cada um dos filtros causou na imagem
 Aplicação
     9) Executar todos em sequencia
-    0) Fechar
-    ''')
+    0) Fechar''')
 
-    opcao = int(input("Digite aqui: "))
+    opcao = input("Digite o número da opção aqui: ")
 
-    if(opcao == 1):
+    if(opcao == "1"):
         print("1) Apresente-a em seu espectro da frequência")
         transformadaFourier(imagemCinza)
 
-    elif(opcao == 2):
+    elif(opcao == "2"):
         print("2) Aplique um filtro passa-alta, passa-baixa, passa-banda e rejeita-banda")
         filtros_resultados = filtros_frequencia(imagemCinza)
 
-    elif(opcao == 3):
+    elif(opcao == "3"):
         print("3) Aplique a transformação inversa e Mostre as imagens resultantes")
-        transformadaInversa(filtros_resultados)
+        filtros_resultados = filtros_frequencia(imagemCinza)
+        inversaFourier(filtros_resultados)
 
-    elif(opcao == 4):
+    elif(opcao == "4"):
         print("4) Comente sua percepção do resultado e o que cada um dos filtros causou na imagem")
-        print("")
+        print("O passa-baixa deixou a imagem borrada")
+        print("O passa-alta deixou as bordas mais nítidas")
+        print("O passa-banda deixou as bordas da imagem borrada")
+        print("O rejeita-banda deixou a imagem mais clara e borrada")
+        input("Aperte ENTER para continuar ")
 
-    elif(opcao == 5):
+    elif(opcao == "5"):
         print("5) Apresente a imagem com 3 níveis de aplicação da Transformada Wavelet")
         aplicarWavelet(imagemCinza)
 
-    elif(opcao == 6):
+    elif(opcao == "6"):
         print("6) Aplique um filtro passa-alta e um passa-baixa")
-        # TODO Implemente aqui o filtro passa-alta e passa-baixa para Wavelet
+        filtrosPAPBWavelet(imagemCinza)
 
-    elif(opcao == 7):
+    elif(opcao == "7"):
         print("7) Aplique a transformação inversa e Mostre as imagens resultantes")
-        # TODO Implemente aqui a inversa da Wavelet
+        inversaWavelet(imagemCinza)
 
-    elif(opcao == 8):
+    elif(opcao == "8"):
         print("8) Comente sua percepção do resultado e o que cada um dos filtros causou na imagem")
-        print("Comente sua percepção do resultado e o que cada um dos filtros causou na imagem")
-        print("")
+        print("O passa-alta deixou a imagem menos sombreada")
+        print("O passa-baixa escureceu a imagem e ressaltou as bordas mais próximas da câmera")
+        input("Aperte ENTER para continuar ")
 
-    elif(opcao == 9):
+    elif(opcao == "9"):
         print("Executando todos em sequência...")
         transformadaFourier(imagemCinza)
         filtros_resultados = filtros_frequencia(imagemCinza)
-        transformadaInversa(filtros_resultados)
+        inversaFourier(filtros_resultados)
+        print("4) Comente sua percepção do resultado e o que cada um dos filtros causou na imagem")
+        print("O passa-baixa deixou a imagem borrada")
+        print("O passa-alta deixou as bordas mais nítidas")
+        print("O passa-banda deixou as bordas da imagem borrada")
+        print("O rejeita-banda deixou a imagem mais clara e borrada")
+        input("Aperte ENTER para continuar ")
         aplicarWavelet(imagemCinza)
-        # Adicione aqui as funções de filtro e inversa para Wavelet se implementadas
+        filtrosPAPBWavelet(imagemCinza)
+        print("8) Comente sua percepção do resultado e o que cada um dos filtros causou na imagem")
+        print("O passa-alta deixou a imagem menos sombreada")
+        print("O passa-baixa escureceu a imagem e ressaltou as bordas mais próximas da câmera")
+        input("Aperte ENTER para continuar ")
 
-    elif(opcao == 0):
-        print("Fechando o programa...")
+    elif(opcao == "0"):
+        print("\nFechando o programa...\n")
+
+    else:
+        print(f"\n\"{opcao}\" não é uma opção válida!\nTente digitar outro valor!!!\n")
+        input("Aperte ENTER para continuar ")
