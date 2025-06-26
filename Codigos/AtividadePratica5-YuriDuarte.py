@@ -1,14 +1,19 @@
-# Atividade Prática de 
+# Atividade Prática de Transformações Morfológicas
 # Estudante: Yuri David Silva Duarte
-# Data: 
-# TODO Arrumar cabeçalho
+# Data: 26/06/2025
 
+# TODO Requirements
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 import pywt # pip install PyWavelets
 
-def imgParaCinza(imagem): # Transformar a imagem em cinza
+# 1) Escolha uma imagem
+caminho = ".\Images\wallpaperminimalista.jpg"
+imagem = Image.open(caminho)
+imagem.show() # Mostra a imagem escolhida
+
+def imgParaCinza(imagem):
     largura, altura = imagem.size  # width, height
     total = largura * altura
     cont = 0
@@ -31,36 +36,112 @@ def imgParaCinza(imagem): # Transformar a imagem em cinza
 
     return cinza
 
-# Funções aqui
-
-opcao = 1000
-
-# caminho = input("Digite o caminho da imagem: ").strip('"')
-caminho = ".\Images\The Forest Arco e Flecha.jpeg"
-imagem = Image.open(caminho)
-# imagem.show() # Mostra a imagem escolhida
-
 imagemCinza = imgParaCinza(imagem)
-# imagemCinza.show() # Mostra a imagem em cinza
 
-while(opcao != "0"):
-    print('''
-    **Selecione uma opção**
-    1) w??
-    9) Executar todos em sequencia
-    0) Fechar''')
+# 2) Escolher um “objeto-alvo” a ser segmentado (separado)
+# 3) Aplicar o melhor Filtro Passa-Baixa para o caso e, em seguida, Realizar
+# a melhor limiarização
 
-    opcao = input("Digite o número da opção aqui: ")
-
-    if(opcao == "1"):
-        print("1) Apresente-a em seu espectro da frequência")
-        transformadaFourier(imagemCinza)
-
-    
-
-    elif(opcao == "0"):
-        print("\nFechando o programa...\n")
-
+def filtro_circular(shape, raio_min=0, raio_max=np.inf, passa=True):
+    rows, cols = shape
+    crow, ccol = rows // 2, cols // 2
+    y, x = np.ogrid[:rows, :cols]
+    distancia = np.sqrt((x - ccol)**2 + (y - crow)**2)
+    if passa:
+        return (distancia >= raio_min) & (distancia <= raio_max)
     else:
-        print(f"\n\"{opcao}\" não é uma opção válida!\nTente digitar outro valor!!!\n")
-        input("Aperte ENTER para continuar ")
+        return ~((distancia >= raio_min) & (distancia <= raio_max))
+
+def aplicar_filtro(F_shift, mascara):
+    filtrado = F_shift * mascara
+    f_ishift = np.fft.ifftshift(filtrado)
+    img_back = np.fft.ifft2(f_ishift)
+    return np.abs(img_back)
+
+def filtros_frequencia(imagemCinza):
+    imagem_array = np.array(imagemCinza)
+    F = np.fft.fft2(imagem_array)
+    F_shift = np.fft.fftshift(F)
+
+    shape = F_shift.shape
+
+    # Filtro Passa-Baixa
+    mascara_pb = filtro_circular(shape, raio_max=50, passa=True)
+    img_pb = aplicar_filtro(F_shift, mascara_pb)
+
+    # Filtro Passa-Alta
+    mascara_pa = filtro_circular(shape, raio_min=30, passa=True)
+    img_pa = aplicar_filtro(F_shift, mascara_pa)
+
+    # Filtro Passa-Banda
+    mascara_pbanda = filtro_circular(shape, raio_min=20, raio_max=60, passa=True)
+    img_pbanda = aplicar_filtro(F_shift, mascara_pbanda)
+
+    # Filtro Rejeita-Banda
+    mascara_rbanda = filtro_circular(shape, raio_min=20, raio_max=60, passa=False)
+    img_rbanda = aplicar_filtro(F_shift, mascara_rbanda)
+
+    # Exibe os resultados
+    plt.figure(figsize=(12, 8))
+
+    plt.subplot(2, 2, 1)
+    plt.imshow(img_pb, cmap='gray')
+    plt.title("Passa-Baixa")
+    plt.axis('off')
+
+    plt.subplot(2, 2, 2)
+    plt.imshow(img_pa, cmap='gray')
+    plt.title("Passa-Alta")
+    plt.axis('off')
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(img_pbanda, cmap='gray')
+    plt.title("Passa-Banda")
+    plt.axis('off')
+
+    plt.subplot(2, 2, 4)
+    plt.imshow(img_rbanda, cmap='gray')
+    plt.title("Rejeita-Banda")
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+    return img_pb
+
+passaBaixa = filtros_frequencia(imagemCinza)
+
+def limiarizador(imagem, limite):
+    largura, altura = imagem.size
+    img_limiarizada = Image.new("L", (largura, altura))  # Imagem em tons de cinza
+
+    total = largura * altura
+    cont = 0
+
+    for x in range(largura):
+        for y in range(altura):
+            pixel = imagem.getpixel((x, y))  # pixel = (R, G, B)
+
+            luminancia = sum(pixel) // 3  # média dos canais
+
+            if luminancia >= limite:
+                img_limiarizada.putpixel((x, y), luminancia)  # valor em escala de cinza
+            else:
+                img_limiarizada.putpixel((x, y), 0)  # preto
+
+            cont += 1
+            if((cont * 10000) % total == 0):
+                print(f"\rLimiarização {cont * 100 // total}% Concluída!", end="")
+
+    print(f"\rLimiarização {100}% concluída!")
+
+T = 50
+
+limiarizada = (limiarizador(passaBaixa, T))
+limiarizada.show()
+
+# 4) Propor uma sequência de operações morfológicas para se criar uma
+# “máscara” para o objeto alvo
+
+# 5) Multiplicar a “máscara” gerada pela imagem original e visualizar o
+# resultado
